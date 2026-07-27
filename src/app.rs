@@ -1,5 +1,7 @@
-use axum::{Json, Router, routing::get};
-use tokio::net::TcpListener;
+use std::sync::Arc;
+
+use axum::{Json, Router, extract::State, routing::get};
+use tokio::{net::TcpListener, sync::Mutex};
 use tracing::info;
 use tracing_subscriber::{
     Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
@@ -9,13 +11,14 @@ use crate::models::Asset;
 
 pub struct App;
 
-pub struct AppState{
-    assets: Vec<Asset>,
+#[derive(Clone)]
+pub struct AppState {
+    pub assets: Arc<Mutex<Vec<Asset>>>,
 }
 
 impl AppState {
     fn new() -> Self {
-        Self{
+        Self {
             assets: Default::default(),
         }
     }
@@ -41,7 +44,7 @@ impl App {
     }
 }
 
-#[tracing::instrument]
-async fn list_assets() -> Json<Vec<Asset>> {
+#[tracing::instrument(skip_all)]
+async fn list_assets(state: State<AppState>) -> Json<Vec<Asset>> {
     Json(Vec::new())
 }
